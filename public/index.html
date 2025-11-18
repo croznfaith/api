@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .profile-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .profile-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .profile-info {
+            display: grid;
+            gap: 8px;
+        }
+        
+        .profile-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .success {
+            color: #28a745;
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #d4edda;
+            border-radius: 5px;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            color: #dc3545;
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 5px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🔐 OTP Verification</h2>
+        
+        <div class="info">
+            <strong>Test UIDs:</strong> 123456, 654321, 112233
+        </div>
+        
+        <!-- UID Input Section -->
+        <div id="uidSection">
+            <div class="input-group">
+                <input type="text" id="uid" placeholder="Enter your UID" required>
+            </div>
+            <button onclick="sendOTP()">📤 Send OTP via Telegram</button>
+        </div>
+        
+        <!-- Profile Display Section -->
+        <div id="profileSection" class="hidden">
+            <div class="profile-card">
+                <h3>👤 User Profile</h3>
+                <div class="profile-info" id="userProfile">
+                    <!-- Profile data will appear here -->
+                </div>
+            </div>
+            
+            <!-- OTP Input Section -->
+            <div class="input-group">
+                <input type="text" id="otp" placeholder="Enter 6-digit OTP" maxlength="6">
+            </div>
+            <button onclick="verifyOTP()">✅ Verify OTP</button>
+        </div>
+        
+        <!-- Messages -->
+        <div id="message"></div>
+    </div>
+
+    <script>
+        let currentUID = '';
+        
+        async function sendOTP() {
+            const uid = document.getElementById('uid').value.trim();
+            currentUID = uid;
+            
+            if (!uid) {
+                showMessage('Please enter UID!', 'error');
+                return;
+            }
+            
+            showMessage('Sending OTP to your Telegram...', 'info');
+            
+            try {
+                const response = await fetch('/api/send-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ uid: uid })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('uidSection').style.display = 'none';
+                    document.getElementById('profileSection').classList.remove('hidden');
+                    
+                    // Display profile
+                    document.getElementById('userProfile').innerHTML = `
+                        <div class="profile-item">
+                            <span>Name:</span>
+                            <span>${result.profile.name}</span>
+                        </div>
+                        <div class="profile-item">
+                            <span>Email:</span>
+                            <span>${result.profile.email}</span>
+                        </div>
+                        <div class="profile-item">
+                            <span>Phone:</span>
+                            <span>${result.profile.phone}</span>
+                        </div>
+                    `;
+                    
+                    showMessage('OTP sent to your Telegram! Check your messages.', 'success');
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Network error! Please try again.', 'error');
+                console.error('Error:', error);
+            }
+        }
+        
+        async function verifyOTP() {
+            const otp = document.getElementById('otp').value.trim();
+            
+            if (!otp || otp.length !== 6) {
+                showMessage('Please enter valid 6-digit OTP!', 'error');
+                return;
+            }
+            
+            showMessage('Verifying OTP...', 'info');
+            
+            try {
+                const response = await fetch('/api/verify-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        uid: currentUID, 
+                        otp: otp 
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('✅ OTP verified successfully!', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Network error! Please try again.', 'error');
+            }
+        }
+        
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+        
+        // Enter key support
+        document.getElementById('uid').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendOTP();
+        });
+        
+        document.getElementById('otp').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') verifyOTP();
+        });
+    </script>
+</body>
+</html>
