@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OTP System</title>
+    <style>
+        body { font-family: Arial; max-width: 400px; margin: 50px auto; padding: 20px; }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; }
+        button { background: #0070f3; color: white; border: none; cursor: pointer; }
+        .profile { background: #f5f5f5; padding: 15px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h2>🔐 OTP System</h2>
+    
+    <div id="uidSection">
+        <input type="text" id="uid" placeholder="Enter UID (123456 or 654321)">
+        <button onclick="sendOTP()">Send OTP</button>
+    </div>
+    
+    <div id="profileSection" style="display:none;">
+        <div class="profile" id="userProfile"></div>
+        <input type="text" id="otp" placeholder="Enter OTP">
+        <button onclick="verifyOTP()">Verify OTP</button>
+    </div>
+    
+    <div id="message"></div>
+
+    <script>
+        let currentUID = '';
+        
+        async function sendOTP() {
+            const uid = document.getElementById('uid').value;
+            currentUID = uid;
+            
+            const response = await fetch('/api/otp?action=send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uid })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                document.getElementById('uidSection').style.display = 'none';
+                document.getElementById('profileSection').style.display = 'block';
+                document.getElementById('userProfile').innerHTML = `
+                    <h3>User Profile</h3>
+                    <p><strong>Name:</strong> ${result.profile.name}</p>
+                    <p><strong>Email:</strong> ${result.profile.email}</p>
+                `;
+                showMessage(`OTP: ${result.message.split(': ')[1]}`, 'green');
+            } else {
+                showMessage(result.message, 'red');
+            }
+        }
+        
+        async function verifyOTP() {
+            const otp = document.getElementById('otp').value;
+            
+            const response = await fetch('/api/otp?action=verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uid: currentUID, otp })
+            });
+            
+            const result = await response.json();
+            showMessage(result.message, result.success ? 'green' : 'red');
+        }
+        
+        function showMessage(msg, color) {
+            document.getElementById('message').innerHTML = `<p style="color:${color}">${msg}</p>`;
+        }
+    </script>
+</body>
+</html>
