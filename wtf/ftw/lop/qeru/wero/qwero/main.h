@@ -1,5 +1,6 @@
 NAME=[SRC HUB]
-KEY={"SRCHUB"200"10-06-2027"FREE-KEY"}
+//KEY={"SRCHUB"200"10-06-2027"FREE-KEY"}
+KEY={"SRCHUB","200","10-06-2027","ACTIVE"}
 //here you can add new key
 BotToken={"8922436419:AAGu7n_iIO6-lImvIjP7iFyMvEewD6tPsdw"}
 Userid={"5730398152"}
