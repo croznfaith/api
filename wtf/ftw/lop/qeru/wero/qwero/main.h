@@ -6,3 +6,4 @@ Userid={"5730398152"}
 DeveloperName={"XThrlen"}
 ChannelName={"SRC HUB"}
 ToolVersion={"4.5.1}
+Files={".lua".lua.bak"}
